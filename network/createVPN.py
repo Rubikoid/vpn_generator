@@ -55,9 +55,11 @@ class teamGenerator(object):
             self.easyRsaDo(["--batch", "gen-req", f"--req-cn={cli_name}", cli_name, "nopass"])
             self.easyRsaDo(["--batch", "sign-req", "client", cli_name])
 
-        self.easyRsaDo(["gen-dh"])
         p = subprocess.Popen(["openvpn", "--genkey", "--secret", "pki/ta.key"], self.epath)
         p.wait()
+
+    def generateDH(self):
+        self.easyRsaDo(["gen-dh"])
 
     def generateConfigs(self):
         ca_data = open(os.path.join(self.epath, "pki", "ca.crt"), 'r').read()
@@ -94,3 +96,10 @@ class teamGenerator(object):
         cmdline.extend(args)
         p = subprocess.Popen(cmdline, cwd=self.epath)
         return p.wait()
+
+
+if __name__ == "__main__":
+    test = teamGenerator(1)
+    test.generateKeys()
+    test.generateDH()
+    test.generateConfigs()
