@@ -41,21 +41,21 @@ class teamGenerator(object):
             fvars.write("\n".join(f"set_var {i}\t\"{v}\"" for i, v in Settings.easy_rsa_vars.items()))
 
         self.easyRsaDo(["init-pki"])
-        self.easyRsaDo(["--batch", "build-ca", f"--req-cn={Settings.SeverName}", "nopass"])
+        self.easyRsaDo(["--batch", f"--req-cn={Settings.SeverName}", "build-ca", "nopass"])
         self.easyRsaDo(["gen-crl"])
 
         # server
         srv_name = f"server_team{self._team_id}"
-        self.easyRsaDo(["--batch", "gen-req", f"--req-cn={srv_name}", srv_name, "nopass"])
+        self.easyRsaDo(["--batch", f"--req-cn={srv_name}", "gen-req", srv_name, "nopass"])
         self.easyRsaDo(["--batch", "sign-req", "server", srv_name])
 
         # client
         for i in range(Settings.ClientCount):
             cli_name = f"client_team{self._team_id}_{i}"
-            self.easyRsaDo(["--batch", "gen-req", f"--req-cn={cli_name}", cli_name, "nopass"])
+            self.easyRsaDo(["--batch", f"--req-cn={cli_name}", "gen-req", cli_name, "nopass"])
             self.easyRsaDo(["--batch", "sign-req", "client", cli_name])
 
-        p = subprocess.Popen(["openvpn", "--genkey", "--secret", "pki/ta.key"], self.epath)
+        p = subprocess.Popen(["openvpn", "--genkey", "--secret", "pki/ta.key"], cwd=self.epath)
         p.wait()
 
     def generateDH(self):
