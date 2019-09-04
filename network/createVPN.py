@@ -12,12 +12,13 @@ class Settings(object):
         "EASYRSA_REQ_PROVINCE": "Moscow",
         "EASYRSA_REQ_CITY": "Moscow",
         "EASYRSA_REQ_ORG": "KKS",
-        "EASYRSA_REQ_EMAIL": "rubikoid@kksctf.ru",
+        "EASYRSA_REQ_EMAIL": "rubikoid@rubikoid.ru",
         "EASYRSA_REQ_OU": "KKS",
         "EASYRSA_KEY_SIZE": "2048",
     }
     server_config_base = open("server_base.conf", "r").read()
     client_config_base = open("client_base.conf", "r").read()
+    ip_pool_generator = "10.20.{tid}.0"
 
 
 class teamGenerator(object):
@@ -28,7 +29,7 @@ class teamGenerator(object):
         self.exppath = os.path.join(".", "ovpn_data", f"team{self._team_id}")
         self.cliexppath = os.path.join(self.exppath, "clients")
 
-        os.makedirs(os.path.join(".", "CAs"))
+        os.makedirs(os.path.join(".", "CAs"), exist_ok=True)
         os.makedirs(self.exppath)
         os.makedirs(self.cliexppath)
 
@@ -78,18 +79,23 @@ class teamGenerator(object):
             "srv_key_data": srv_key,
             "server_port": Settings.StartPort + self._team_id - 1,
             "server_ip": Settings.SeverName,
+            "ip_pool": Settings.ip_pool_generator.format(tid=self._team_id),
+            "team_id": self._team_id
         }
 
-        with open(os.path.join(self.exppath, "server.conf")) as f:
+        with open(os.path.join(self.exppath, "server.ovpn"), 'w') as f:
             f.write(Settings.server_config_base.format(**env))
 
         for i in range(Settings.ClientCount):
             client_cert = open(os.path.join(self.epath, "pki", "issued", f"client_team{self._team_id}_{i}.crt"), 'r').read()
-            client_key = open(os.path.join(self.epath, "pki", "private", f"client_team{self._team_id}_{i}.crt"), 'r').read()
+            client_key = open(os.path.join(self.epath, "pki", "private", f"client_team{self._team_id}_{i}.key"), 'r').read()
             env["cl_cert_data"] = client_cert
             env["cl_key_data"] = client_key
-            with open(os.path.join(self.cliexppath, f"client_team{self._team_id}_{i}.conf")) as f:
+            with open(os.path.join(self.cliexppath, f"client_team{self._team_id}_{i}.ovpn"), 'w') as f:
                 f.write(Settings.client_config_base.format(**env))
+
+        p = subprocess.Popen(["tar", "cvf", f"clients_team{self._team_id}.tar", "./clients"], cwd=self.exppath)
+        p.wait()
 
     def easyRsaDo(self, args):
         cmdline = ["./easyrsa"]
