@@ -25,7 +25,7 @@ class teamGenerator(object):
         self._team_id = tid or 1
 
         self.epath = os.path.join(".", "CAs", f"ca_team{self._team_id}")
-        self.exppath = os.path.join(".", "ovpn_data", f"team{self._team_d}")
+        self.exppath = os.path.join(".", "ovpn_data", f"team{self._team_id}")
         self.cliexppath = os.path.join(self.exppath, "clients")
 
         os.makedirs(os.path.join(".", "CAs"))
@@ -38,23 +38,25 @@ class teamGenerator(object):
 
         os.rename(os.path.join(self.epath, "vars"), os.path.join(self.epath, "vars.old"))
         with open(os.path.join(self.epath, "vars"), 'w') as fvars:
-            fvars.write("\n".join(f"set_var {i}\t\"{v}\"" for i, v in Settings.easy_rsa_vars))
+            fvars.write("\n".join(f"set_var {i}\t\"{v}\"" for i, v in Settings.easy_rsa_vars.items()))
 
         self.easyRsaDo(["init-pki"])
         self.easyRsaDo(["--batch", "build-ca", f"--req-cn={Settings.SeverName}", "nopass"])
         self.easyRsaDo(["gen-crl"])
 
         # server
-        self.easyRsaDo(["--batch", "gen-req", f"server_team{self._team_id}", "nopass"])
-        self.easyRsaDo(["--batch", "sign-req", "server", f"server_team{self._team_id}"])
+        srv_name = f"server_team{self._team_id}"
+        self.easyRsaDo(["--batch", "gen-req", f"--req-cn={srv_name}", srv_name, "nopass"])
+        self.easyRsaDo(["--batch", "sign-req", "server", srv_name])
 
         # client
         for i in range(Settings.ClientCount):
-            self.easyRsaDo(["--batch", "gen-req", f"client_team{self._team_id}_{i}", "nopass"])
-            self.easyRsaDo(["--batch", "sign-req", "client", f"client_team{self._team_id}_{i}"])
+            cli_name = f"client_team{self._team_id}_{i}"
+            self.easyRsaDo(["--batch", "gen-req", f"--req-cn={cli_name}", cli_name, "nopass"])
+            self.easyRsaDo(["--batch", "sign-req", "client", cli_name])
 
         self.easyRsaDo(["gen-dh"])
-        p = subprocess.Popen(["openvpn", "--genkey", "--secret pki/ta.key"], self.epath)
+        p = subprocess.Popen(["openvpn", "--genkey", "--secret", "pki/ta.key"], self.epath)
         p.wait()
 
     def generateConfigs(self):
