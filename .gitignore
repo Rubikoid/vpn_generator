@@ -1,3 +1,8 @@
 network/ovpn/CAs/
 network/ovpn/ovpn_data/
 network/wg/team*
+
+team*/
+
+__pycache__/*
+*.pyc
