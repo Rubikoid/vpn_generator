@@ -38,6 +38,20 @@ iptables_lib = {
         'down': "iptables -D FORWARD -o %i -j ACCEPT",
         'args': []
     },
+    'output_ip': {
+        'up': "iptables -A FORWARD -o %i -j ACCEPT -d {n.fw_output_ip_ip}",
+        'down': "iptables -D FORWARD -o %i -j ACCEPT -d {n.fw_output_ip_ip}",
+        'args': [
+            {
+                "base": ["ip"],
+                "args": {
+                    "action": "store",
+                    "type": str,
+                    "help": "Ip for allowing connection",
+                }
+            }
+        ]
+    },
     'net_masq': {
         'up': "iptables -t nat -A POSTROUTING -o {n.fw_net_masq_interface} -j MASQUERADE",
         'down': "iptables -t nat -D POSTROUTING -o {n.fw_net_masq_interface} -j MASQUERADE",

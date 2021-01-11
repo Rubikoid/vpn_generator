@@ -41,7 +41,7 @@ def main():
         pUp = rule["up"].format(n=args)
         pDown = rule["down"].format(n=args)
         settings.PostUp.append(pUp)
-        settings.PostDown.append(pUp)
+        settings.PostDown.append(pDown)
 
     print(args)
     print(settings.PostUp, settings.PostDown)
