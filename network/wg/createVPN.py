@@ -9,21 +9,21 @@ from .settings import Settings
 
 
 class teamGenerator(object):
-    team_id: int
+    name: str
     settings: Settings
 
     basepath: str
     epath: str
     cliexppath: str
 
-    def __init__(self, tid: int = None, base_path: str = ".", settings: Settings = Settings()):
-        self.team_id = tid or 1
+    def __init__(self, name: str = None, base_path: str = ".", settings: Settings = Settings()):
+        self.name = name or "unnamed"
         self.settings = settings
 
-        self.basepath = pjoin(base_path, f"team{self.team_id}")
+        self.basepath = pjoin(base_path, f"net_{self.name}")
 
         self.epath = pjoin(self.basepath, "keys")
-        self.cliexppath = pjoin(self.basepath, f"team{self.team_id}_conf")
+        self.cliexppath = pjoin(self.basepath, f"net_{self.name}_conf")
 
         os.makedirs(self.epath, exist_ok=True)
         os.makedirs(self.cliexppath)
@@ -31,17 +31,17 @@ class teamGenerator(object):
     def generate(self):
         server = self.generate_key(self.epath, "server")
         env = {
-            "team_id": self.team_id,
+            "name": self.name,
 
             "server_ip": self.settings.ServerName,
-            "port": self.settings.StartPort + self.team_id - 1,
+            "port": self.settings.StartPort,
 
-            "subnet": self.settings.ip_pool_base.format(tid=self.team_id, cid=0) + "/24",  # 0 and 1 reserved
+            "subnet": self.settings.ip_pool_base.format(cid=0) + "/24",  # 0 and 1 reserved
 
             "server_private_key": server[0],
             "server_public_key": server[1],
 
-            "server_internal_addr": self.settings.ip_pool_base.format(tid=self.team_id, cid=1) + "/24",
+            "server_internal_addr": self.settings.ip_pool_base.format(cid=1) + "/24",
 
             "client_keep_alive": (f'PersistentKeepalive = {self.settings.ClientKeepAlive}' if self.settings.ClientKeepAlive else ''),
 
@@ -54,18 +54,18 @@ class teamGenerator(object):
             env["client_num"] = client_num
             env["client_private_key"] = client[0]
             env["client_public_key"] = client[1]
-            env["client_ip"] = self.settings.ip_pool_base.format(tid=self.team_id, cid=client_num + 2) + "/32"  # 0 and 1 reserved
-            env["client_network"] = self.settings.ip_pool_base.format(tid=self.team_id, cid=client_num + 2) + "/24"  # todo: more networks?
+            env["client_ip"] = self.settings.ip_pool_base.format(cid=client_num + 2) + "/32"  # 0 and 1 reserved
+            env["client_network"] = self.settings.ip_pool_base.format(cid=client_num + 2) + "/24"  # todo: more networks?
             client_parts.append(self.settings.client_config_part.format(**env))
             with open(pjoin(self.cliexppath, f"client{client_num}.conf"), 'w') as f:
                 f.write(self.settings.client_config_base.format(**env))
 
-        with open(pjoin(self.basepath, f"server_{self.team_id}.conf"), 'w') as f:
+        with open(pjoin(self.basepath, f"server_{self.name}.conf"), 'w') as f:
             print(env)
             f.write(self.settings.server_config_base.format(**env))
             f.write("\n\n" + "\n".join(client_parts))
 
-        p = subprocess.Popen("tar -cvf " + f"clients_team{self.team_id}.tar ./*", cwd=self.cliexppath, shell=True)
+        p = subprocess.Popen("tar -cvf " + f"clients_{self.name}.tar ./*", cwd=self.cliexppath, shell=True)
         p.wait()
 
     def generate_key(self, save_path: str, name: str) -> Tuple[str, str]:

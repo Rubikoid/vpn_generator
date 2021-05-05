@@ -9,7 +9,7 @@ import wg
 def main():
     parser = argparse.ArgumentParser(description='VPN configs gen.')
 
-    parser.add_argument("-t", "--team_id", action="store", type=int, help="Team id", required=True)
+    parser.add_argument("-n", "--name", action="store", type=int, help="Network name", required=True)
     parser.add_argument("-l", "--host", action="store", type=str, help="Server host", required=True)
     parser.add_argument("-p", "--port", action="store", type=int, help="Start port (or one port for server)", required=True)
     parser.add_argument("-c", "--clients", action="store", type=int, help="Clients count (default: 10)", default=16)
@@ -46,7 +46,7 @@ def main():
     print(args)
     print(settings.PostUp, settings.PostDown)
 
-    gen = wg.createVPN.teamGenerator(args.team_id, ".", settings)
+    gen = wg.createVPN.teamGenerator(args.name, ".", settings)
     gen.generate()
 
     # settings.server_config_base = args["server_config_base"] or settings.server_config_base
