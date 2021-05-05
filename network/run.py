@@ -36,12 +36,13 @@ def main():
     settings.ip_pool_base = args.ip_pool_base or settings.ip_pool_base
     settings.ClientKeepAlive = args.keepalive or settings.ClientKeepAlive
 
-    for rule_name in args.fw_rules:
-        rule = wg.settings.iptables_lib[rule_name]
-        pUp = rule["up"].format(n=args)
-        pDown = rule["down"].format(n=args)
-        settings.PostUp.append(pUp)
-        settings.PostDown.append(pDown)
+    if args.fw_rules is not None:
+        for rule_name in args.fw_rules:
+            rule = wg.settings.iptables_lib[rule_name]
+            pUp = rule["up"].format(n=args)
+            pDown = rule["down"].format(n=args)
+            settings.PostUp.append(pUp)
+            settings.PostDown.append(pDown)
 
     print(args)
     print(settings.PostUp, settings.PostDown)

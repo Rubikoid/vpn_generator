@@ -65,7 +65,12 @@ iptables_lib = {
                 }
             }
         ]
-    }
+    },
+    'inside': {
+        'up': "iptables -A FORWARD -i %i -o %i -j ACCEPT",
+        'down': "iptables -D FORWARD -i %i -o %i -j ACCEPT",
+        'args': []
+    },
 }
 
 
