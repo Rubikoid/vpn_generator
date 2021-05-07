@@ -30,6 +30,9 @@ def main():
 
     settings = wg.settings.Settings()
 
+    if args.clients >= 254:
+        raise Exception("Too many clients")
+
     settings.ServerName = args.host or settings.ServerName
     settings.StartPort = args.port or settings.StartPort
     settings.ClientCount = args.clients or settings.ClientCount
